@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>برنامه‌ریز درسی هوشمند</title>
+  <meta name="description" content="برنامه‌ریزی درسی با برنامه هفتگی، پومودورو، شمارش معکوس امتحان و دستیار هوش مصنوعی">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">📚 برنامه‌ریز درسی</div>
+    <nav id="nav" aria-label="منوی اصلی">
+      <button data-view="dashboard" class="active">داشبورد</button>
+      <button data-view="week">برنامه هفتگی</button>
+      <button data-view="tasks">کارها</button>
+      <button data-view="subjects">درس‌ها و امتحان‌ها</button>
+      <button data-view="pomodoro">پومودورو</button>
+      <button data-view="ai">دستیار هوشمند</button>
+      <button data-view="settings">تنظیمات</button>
+    </nav>
+    <button id="theme-btn" class="icon" title="تغییر تم" aria-label="تغییر تم">🌓</button>
+  </header>
+
+  <main>
+    <!-- داشبورد -->
+    <section id="view-dashboard" class="view active">
+      <div class="stats">
+        <div class="card stat"><span>کارهای امروز</span><b id="st-today">۰</b></div>
+        <div class="card stat"><span>پیشرفت کل</span><b id="st-progress">۰٪</b></div>
+        <div class="card stat"><span>ساعت مطالعه انجام‌شده</span><b id="st-hours">۰</b></div>
+        <div class="card stat"><span>امتحان بعدی</span><b id="st-exam">—</b></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>کارهای امروز</h2>
+          <ul id="dash-today" class="list"></ul>
+        </div>
+        <div class="card">
+          <h2>مطالعه ۷ روز اخیر (دقیقه)</h2>
+          <div id="chart" class="chart"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>امتحان‌های پیش رو</h2>
+        <ul id="dash-exams" class="list"></ul>
+      </div>
+    </section>
+
+    <!-- هفتگی -->
+    <section id="view-week" class="view">
+      <div class="card toolbar">
+        <button id="week-prev" class="btn ghost">→ هفته قبل</button>
+        <b id="week-title"></b>
+        <button id="week-today" class="btn ghost">این هفته</button>
+        <button id="week-next" class="btn ghost">هفته بعد ←</button>
+      </div>
+      <div id="week-grid" class="week"></div>
+
+      <div class="card">
+        <h2>🧠 ساخت خودکار برنامه (بدون نیاز به اینترنت)</h2>
+        <p class="muted">بر اساس سختی درس‌ها و فاصله تا امتحان، زمان مطالعه به‌صورت هوشمند بین درس‌ها تقسیم می‌شود. کارهای انجام‌نشده‌ی خودکار قبلی در همین بازه جایگزین می‌شوند.</p>
+        <div class="row">
+          <label>ساعت مطالعه در روز
+            <input id="plan-hours" type="number" min="1" max="14" step="0.5" value="4">
+          </label>
+          <label>تعداد روز
+            <select id="plan-days">
+              <option value="7">۷ روز</option>
+              <option value="14" selected>۱۴ روز</option>
+              <option value="30">۳۰ روز</option>
+            </select>
+          </label>
+          <button id="plan-btn" class="btn">ساخت برنامه</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- کارها -->
+    <section id="view-tasks" class="view">
+      <form id="task-form" class="card form">
+        <h2>افزودن کار جدید</h2>
+        <div class="row">
+          <label class="grow">عنوان
+            <input id="task-title" required maxlength="100" placeholder="مثلاً: حل تمرین فصل ۳">
+          </label>
+          <label>درس
+            <select id="task-subject"></select>
+          </label>
+          <label>تاریخ
+            <input id="task-date" type="date" required>
+          </label>
+          <label>مدت (دقیقه)
+            <input id="task-min" type="number" min="5" max="600" step="5" value="45" required>
+          </label>
+          <button class="btn">افزودن</button>
+        </div>
+      </form>
+      <div class="card">
+        <div class="row between">
+          <h2>فهرست کارها</h2>
+          <div class="seg" id="task-filter">
+            <button data-f="all" class="active">همه</button>
+            <button data-f="today">امروز</button>
+            <button data-f="pending">انجام‌نشده</button>
+            <button data-f="done">انجام‌شده</button>
+          </div>
+        </div>
+        <ul id="task-list" class="list"></ul>
+      </div>
+    </section>
+
+    <!-- درس‌ها -->
+    <section id="view-subjects" class="view">
+      <div class="grid2">
+        <form id="subject-form" class="card form">
+          <h2>افزودن درس</h2>
+          <label>نام درس <input id="sub-name" required maxlength="40" placeholder="مثلاً: ریاضی ۲"></label>
+          <label>سختی
+            <select id="sub-diff">
+              <option value="1">آسان</option>
+              <option value="2" selected>متوسط</option>
+              <option value="3">سخت</option>
+            </select>
+          </label>
+          <label>رنگ <input id="sub-color" type="color" value="#4f46e5"></label>
+          <button class="btn">افزودن درس</button>
+          <ul id="subject-list" class="list"></ul>
+        </form>
+        <form id="exam-form" class="card form">
+          <h2>افزودن امتحان</h2>
+          <label>عنوان <input id="exam-title" required maxlength="60" placeholder="مثلاً: میان‌ترم"></label>
+          <label>درس <select id="exam-subject"></select></label>
+          <label>تاریخ <input id="exam-date" type="date" required></label>
+          <button class="btn">افزودن امتحان</button>
+          <ul id="exam-list" class="list"></ul>
+        </form>
+      </div>
+    </section>
+
+    <!-- پومودورو -->
+    <section id="view-pomodoro" class="view">
+      <div class="card pomo">
+        <div id="pomo-mode" class="muted">تمرکز</div>
+        <div id="pomo-time" class="pomo-time">۲۵:۰۰</div>
+        <div class="row center">
+          <button id="pomo-start" class="btn">شروع</button>
+          <button id="pomo-reset" class="btn ghost">بازنشانی</button>
+          <button id="pomo-skip" class="btn ghost">رد کردن</button>
+        </div>
+        <div class="row center">
+          <label>تمرکز (دقیقه) <input id="pomo-focus" type="number" min="5" max="90" value="25"></label>
+          <label>استراحت (دقیقه) <input id="pomo-break" type="number" min="1" max="30" value="5"></label>
+        </div>
+        <p class="muted">جلسه‌های تمرکز امروز: <b id="pomo-count">۰</b></p>
+      </div>
+    </section>
+
+    <!-- هوش مصنوعی -->
+    <section id="view-ai" class="view">
+      <div class="card chat">
+        <h2>🤖 دستیار هوشمند درسی</h2>
+        <p class="muted">دستیار از درس‌ها، امتحان‌ها و کارهای شما خبر دارد. برای استفاده، در «تنظیمات» کلید API خود را وارد کنید.</p>
+        <div class="quick">
+          <button class="chip" data-q="با توجه به درس‌ها و امتحان‌های من، یک برنامه مطالعه هفتگی پیشنهاد بده.">برنامه هفتگی پیشنهادی</button>
+          <button class="chip" data-q="کدام درس‌ها را باید در اولویت قرار بدهم و چرا؟">اولویت‌بندی درس‌ها</button>
+          <button class="chip" data-q="چند تکنیک مطالعه مؤثر برای آماده‌شدن برای امتحان به من بگو.">تکنیک‌های مطالعه</button>
+          <button class="chip" data-q="کارهای انجام‌نشده من را بررسی کن و بگو چطور عقب‌افتادگی را جبران کنم.">جبران عقب‌افتادگی</button>
+        </div>
+        <div id="chat-log" class="chat-log" aria-live="polite"></div>
+        <form id="chat-form" class="row">
+          <input id="chat-input" class="grow" placeholder="سؤالت را بنویس…" autocomplete="off" required>
+          <button id="chat-send" class="btn">ارسال</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- تنظیمات -->
+    <section id="view-settings" class="view">
+      <form id="settings-form" class="card form">
+        <h2>تنظیمات هوش مصنوعی</h2>
+        <label>سرویس‌دهنده
+          <select id="set-provider">
+            <option value="anthropic">Anthropic (Claude)</option>
+            <option value="openai">OpenAI</option>
+          </select>
+        </label>
+        <label>مدل <input id="set-model" dir="ltr" placeholder="claude-sonnet-5-5"></label>
+        <label>کلید API <input id="set-key" type="password" dir="ltr" autocomplete="off" placeholder="sk-..."></label>
+        <p class="muted">⚠️ کلید فقط در مرورگر خودتان (localStorage) ذخیره می‌شود و مستقیماً به سرویس‌دهنده ارسال می‌شود. آن را در کد یا گیت‌هاب قرار ندهید و از کلیدی با سقف هزینه استفاده کنید.</p>
+        <button class="btn">ذخیره</button>
+      </form>
+      <div class="card">
+        <h2>داده‌ها</h2>
+        <div class="row">
+          <button id="export-btn" class="btn ghost">دریافت پشتیبان (JSON)</button>
+          <label class="btn ghost file">بازیابی پشتیبان<input id="import-file" type="file" accept="application/json" hidden></label>
+          <button id="reset-btn" class="btn danger">پاک کردن همه داده‌ها</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="script.js"></script>
+</body>
+</html>
